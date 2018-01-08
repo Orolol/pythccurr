@@ -1,1 +1,2 @@
-pykrakenapi
+ccxt
+sqlite3
