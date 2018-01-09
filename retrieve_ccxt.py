@@ -37,16 +37,14 @@ for exchange in market_places:
                 print(exchange.milliseconds(), 'Fetching candles starting from', exchange.iso8601(from_timestamp))
                 ohlcvs = exchange.fetch_ohlcv(symbol, '1m', from_timestamp)
                 print(exchange.milliseconds(), 'Fetched', len(ohlcvs), 'candles')
-                print(ohlcvs)
                 for x in ohlcvs:
-                    print( exchange.iso8601(x[0]), x[1] , x[4] ) 
                     conn.execute("INSERT INTO history_bitfinex VALUES ('"+ symbol +"', '" + str(x[0]) + "','"+str(x[1])+"','"+str(x[2])+"','"+str(x[3])+"','"+str(x[4])+"','"+str(x[5])+"')")
                 conn.commit()
                 first = ohlcvs[0][0]
                 last = ohlcvs[-1][0]
                 print('First candle epoch', first, exchange.iso8601(first))
                 print('Last candle epoch', last, exchange.iso8601(last))
-                from_timestamp += len(ohlcvs) * minute * 5
+                from_timestamp += len(ohlcvs) * minute * 1
                 data += ohlcvs
                 time.sleep (delay)
 
