@@ -143,81 +143,86 @@ class LinearBayes(object):
 # a_x = np.linspace(-1, 1, 1000)
 # linbayes.make_scatter(x_real[0:N], t_real[0:N], real_parms=[a_0, a_1])
 # print(linbayes.generate_data(a_x))
-
+# symbols = ['EOS/USD','XRP/USD', 'NEO/USD', 'OMG/USD' , 'IOTA/USD', 'ZEC/USD', 'XMR/USD','DASH/USD', 'QSH/USD', 'ETC/USD', 'BAT/USD', 'LTC/USD']
 exchange = ccxt.bitfinex()
+exchange.loadMarkets ()
+time.sleep (1)
 
-ohlcvs = exchange.fetch_ohlcv('EOS/USD', '1m', (time.time() - 6000 ) * 1000)
-mean_CVPMS = 0;
-last_price = ohlcvs[-1][4]
-first_price = ohlcvs[0][1]
-opening = []
-closing = []
-for x in ohlcvs:
-    opening.append(x[1])
-    closing.append(x[4])
-print(ohlcvs[-1])
-  
-npopening = np.array(opening)
-npclosing = np.array(closing)
+for symbol in exchange.symbols[1:-1]:
+    print(symbol)
+    ohlcvs = exchange.fetch_ohlcv(symbol, '1m', (time.time() - 10000 ) * 1000)
+    mean_CVPMS = 0;
+    last_price = ohlcvs[-1][4]
+    first_price = ohlcvs[0][1]
+    opening = []
+    closing = []
+    for x in ohlcvs:
+        opening.append(x[1])
+        closing.append(x[4])
 
-print('npopening', npopening)
-print('npclosing' , npclosing)
+    npopening = np.array(opening)
+    npclosing = np.array(closing)
 
-N = len(opening)
+    N = len(opening)
 
-alpha = 1.
-v_m0 = np.array([0., 0.])
+    alpha = 0.1
+    v_m0 = np.array([0., 0.])
 
 
-m_S0 = 1/alpha*np.identity(2)
-noise_sigma = 0.1
-beta = 1/noise_sigma**2
+    m_S0 = 1/alpha*np.identity(2)
+    noise_sigma = 0.000002
+    beta = 1/noise_sigma**2
 
-print(beta)
 
-linbayes = LinearBayes(v_m0, m_S0, beta)
+    linbayes = LinearBayes(v_m0, m_S0, beta)
 
-linbayes.set_posterior(npopening, npclosing)
-# 
+    linbayes.set_posterior(npopening, npclosing)
+    # 
 
-# # linbayes.generate_data(opening)
-# print("PREDITCION LIMIT")
-prediction = linbayes.prediction_limit(npopening, 1.)
+    # # linbayes.generate_data(opening)
+    # print("PREDITCION LIMIT")
+    prediction = linbayes.prediction_limit(npopening, 1.)
 
-test = np.array(npopening[-10:-1])
-testc = npclosing[-11:-1]
-x = 0
-# for t in test:
-#     arrt = np.array([t])
-#     print(arrt)
-#     y = linbayes.generate_data(arrt)
-#     print(t, ' GENERATE ', y, ' REALITY ', testc[x])
-#     if t > y[0]:
-#         print('DOWN')
-#     else:
-#         print('UP')
-#     if t > testc[x]:
-#         print('REAL DOWN')
-#     else:
-#         print('REAL UP')
-#     x += 1
-start = npclosing[-10]
-tstart = start
-while True:
+    test = np.array(npopening[-10:-1])
+    testc = npclosing[-11:-1]
+    x = 0
+    # for t in test:
+    #     arrt = np.array([t])
+    #     print(arrt)
+    #     y = linbayes.generate_data(arrt)
+    #     print(t, ' GENERATE ', y, ' REALITY ', testc[x])
+    #     if t > y[0]:
+    #         print('DOWN')
+    #     else:
+    #         print('UP')
+    #     if t > testc[x]:
+    #         print('REAL DOWN')
+    #     else:
+    #         print('REAL UP')
+    #     x += 1
+    start = npopening[-3]
+    tstart = start
     total = 0
-    for it in range(1, 1000):
-        start = npclosing[-11]
-        for x in range(1, 10):
+    for it in range(1, 10000):
+        start = npopening[-3]
+        for x in range(0, 2):
             arrt = np.array([start])
             y = linbayes.generate_data(arrt)
             start = y
             x +=1
         total += start
         it += 1
-
-    print('START ', tstart, 'REALITY ', npclosing[-1] , 'MEAN : ', total / 1000)    
-
-# print("GENERATE")
-# print(linbayes.generate_data(test))
+    if( npclosing[-1] - tstart > 0):
+        real = +1
+    else:
+        real = -1
+    if( total / 10000 - tstart > 0):
+        pred = +1
+    else:
+        pred = -1
+    print(symbol, ' START ', tstart, 'REALITY ', npclosing[-1] , 'MEAN : ', total / 10000, ' ISTRUE ? ', pred == real )    
+    time.sleep (1)
+    # print("GENERATE")
+    # print(linbayes.generate_data(test))
 
 
