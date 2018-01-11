@@ -45,7 +45,7 @@ def min_max_wallet(predictions, current, exchange, wallet):
     print("WALLET VALUE", wallet_curr_value, "PREDICTED ", wallet_pred_value, " Woot !", current_gain)
 
     for tuples in sorted_gain_percent:
-        if(wallet[tuples[0]] > 0 and sorted_gain_percent[-1][1] - tuples[1] > 2): 
+        if(wallet[tuples[0]] > 0 and sorted_gain_percent[-1][1] - tuples[1] > 2.5): 
             print("trying to sell ", tuples[0] , tuples[1],  " for ", sorted_gain_percent[-1])
 
             orderbook = exchange.fetch_order_book (tuples[0], {
@@ -54,7 +54,8 @@ def min_max_wallet(predictions, current, exchange, wallet):
             })
             
             bid_sell = orderbook['bids'][0][0] if len (orderbook['bids']) > 0 else None
-            print("SELL ", tuples[0] , " for ", bid_sell )
+            ask_sell = orderbook['asks'][0][0] if len (orderbook['asks']) > 0 else None
+            print("SELL ", tuples[0] , " for ", bid_sell, ' ask :', ask_sell  )
             wallet['USD'] += (wallet[tuples[0]] * bid_sell) * 0.998
             wallet[tuples[0]] = 0
             time.sleep (delay)
@@ -63,7 +64,8 @@ def min_max_wallet(predictions, current, exchange, wallet):
             'limit_asks': 1 
             })
             ask_sell = orderbook['asks'][0][0] if len (orderbook['asks']) > 0 else None
-            print("BUY  ", sorted_gain_percent[-1][0] , " for ", ask_sell )
+            bid_sell = orderbook['bids'][0][0] if len (orderbook['bids']) > 0 else None
+            print("BUY  ", sorted_gain_percent[-1][0] , " for ", ask_sell, ' bid :', bid_sell  )
             wallet[sorted_gain_percent[-1][0]] += (wallet['USD'] * 0.998) / ask_sell
             wallet['USD'] = 0
             print('New Wallet State :', wallet, 'current value : ', get_wallet_value(current, wallet), 'predicted value : ', get_wallet_value(predictions, wallet))
@@ -83,7 +85,8 @@ def init_wallet(sorted_gain_percent, exchange, wallet):
     'limit_asks': 1 
     })
     ask_sell = orderbook['asks'][0][0] if len (orderbook['asks']) > 0 else None
-    print("BUY  ", sorted_gain_percent[-1][0] , " for ", ask_sell )
+    bid_sell = orderbook['bids'][0][0] if len (orderbook['bids']) > 0 else None
+    print("BUY  ", sorted_gain_percent[-1][0] , " for ", ask_sell, ' bid :', bid_sell  )
     wallet[sorted_gain_percent[-1][0]] += (wallet['USD'] * 0.998) / ask_sell
     wallet['USD'] = 0
 
